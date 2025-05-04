@@ -38,7 +38,7 @@ const createToonMaterial = (color: number | string, darkColor: number | string) 
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
   `;
-
+  
   const fragmentShader = `
     uniform vec3 color;
     uniform vec3 darkColor;
@@ -62,7 +62,7 @@ const createToonMaterial = (color: number | string, darkColor: number | string) 
       gl_FragColor = vec4(finalColor, 1.0);
     }
   `;
-
+  
   return new ShaderMaterial({
     uniforms: {
       color: { value: new THREE.Color(color) },
@@ -116,9 +116,9 @@ const initScene = () => {
     composer.addPass(renderPass);
 
     outlinePass = new OutlinePass(
-        new THREE.Vector2(window.innerWidth, window.innerHeight),
-        scene,
-        camera
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      scene,
+      camera
     );
     outlinePass.edgeStrength = 3.0;
     outlinePass.edgeGlow = 0.0;
@@ -298,9 +298,9 @@ const createBirthdayScene = () => {
     }
 
     decorMesh.position.set(
-        Math.cos(angle) * radius,
-        yPos,
-        Math.sin(angle) * radius
+      Math.cos(angle) * radius,
+      yPos,
+      Math.sin(angle) * radius
     );
     // 随机旋转
     decorMesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
@@ -317,54 +317,79 @@ const createBirthdayScene = () => {
 };
 
 // --- 创建粒子 ---
+// 添加速度数组作为全局变量
+let particleVelocities: number[] = [];
+
+// 在 createParticles 函数中初始化速度
 const createParticles = () => {
-  const particleCount = 200; // 减少粒子数量
+  const particleCount = 200;
   const particlesGeometry = new THREE.BufferGeometry();
   const positions = new Float32Array(particleCount * 3);
   const velocities = new Float32Array(particleCount * 3);
   const sizes = new Float32Array(particleCount);
+  const colors = new Float32Array(particleCount * 3);
+
+  // 在文件顶部添加全局变量声明
+  const colorOptions = [
+    new THREE.Color(0xff69b4), // 粉色
+    new THREE.Color(0x00ff00), // 绿色
+    new THREE.Color(0x1e90ff), // 蓝色
+    new THREE.Color(0xffd700), // 金色
+    new THREE.Color(0xff4500)  // 橙红色
+  ];
 
   for (let i = 0; i < particleCount; i++) {
     const i3 = i * 3;
     // 随机位置
     positions[i3] = (Math.random() - 0.5) * 100;
-    positions[i3 + 1] = Math.random() * 50 + 25; // 高度范围
+    positions[i3 + 1] = Math.random() * 50 + 25;
     positions[i3 + 2] = (Math.random() - 0.5) * 100;
-
-    // 速度向量
-    velocities[i3] = -0.5 - Math.random(); // 向左飞
-    velocities[i3 + 1] = -0.5 - Math.random(); // 向下飞
-    velocities[i3 + 2] = 0.1 * (Math.random() - 0.5); // 略微的z轴变化
-
+    
+    // 更快的速度向量
+    velocities[i3] = -1.5 - Math.random() * 2; // 更快的水平速度
+    velocities[i3 + 1] = -1.5 - Math.random() * 2; // 更快的垂直速度
+    velocities[i3 + 2] = 0.3 * (Math.random() - 0.5); // 更明显的z轴变化
+    
     // 随机大小
-    sizes[i] = Math.random() * 0.5 + 0.1;
+    sizes[i] = Math.random() * 0.8 + 0.2; // 更大的粒子
+
+    // 随机颜色
+    const color = colorOptions[Math.floor(Math.random() * colorOptions.length)];
+    colors[i3] = color.r;
+    colors[i3 + 1] = color.g;
+    colors[i3 + 2] = color.b;
   }
 
   particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   particlesGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+  particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-  // 创建着色器材质
+  // 修改着色器材质
   const particleMaterial = new THREE.ShaderMaterial({
     uniforms: {
       time: { value: 0 },
-      size: { value: 15.0 }
+      size: { value: 20.0 } // 增大基础大小
     },
     vertexShader: `
       attribute float size;
+      attribute vec3 color;
       varying float vAlpha;
+      varying vec3 vColor;
       void main() {
         vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
         gl_Position = projectionMatrix * mvPosition;
         gl_PointSize = size * (300.0 / -mvPosition.z);
-        vAlpha = size * 0.8; // 降低整体透明度
+        vAlpha = size * 0.8;
+        vColor = color;
       }
     `,
     fragmentShader: `
       varying float vAlpha;
+      varying vec3 vColor;
       void main() {
         float r = length(gl_PointCoord - vec2(0.5));
         if (r > 0.5) discard;
-        gl_FragColor = vec4(1.0, 0.95, 0.8, vAlpha * 0.7); // 温暖的米黄色调
+        gl_FragColor = vec4(vColor, vAlpha * 0.7);
       }
     `,
     transparent: true,
@@ -374,68 +399,42 @@ const createParticles = () => {
 
   particles = new THREE.Points(particlesGeometry, particleMaterial);
   scene.add(particles);
-
-  // 添加特殊流星
-  const specialMeteor = createSpecialMeteor();
-  scene.add(specialMeteor);
-};
-
-// 创建特殊流星
-const createSpecialMeteor = () => {
-  const geometry = new THREE.BufferGeometry();
-  const material = new THREE.LineBasicMaterial({
-    color: 0x00ffff,
-    transparent: true,
-    opacity: 0.8
-  });
-
-  const points = [];
-  points.push(new THREE.Vector3(-20, 20, 0));
-  points.push(new THREE.Vector3(20, -20, 0));
-
-  geometry.setFromPoints(points);
-  const meteor = new THREE.Line(geometry, material);
-
-  // 添加动画
-  gsap.to(meteor.position, {
-    x: 100,
-    y: -100,
-    duration: 2,
-    repeat: -1,
-    ease: "none",
-    onRepeat: () => {
-      meteor.position.set(-100, 100, 0);
-    }
-  });
-
-  return meteor;
 };
 
 // 修改动画循环
 const animate = () => {
   animationFrameId = requestAnimationFrame(animate);
   controls.update();
-
+  
   if (particles) {
     const positions = particles.geometry.attributes.position.array;
+    const velocities = particles.geometry.attributes.velocity?.array;
     const particleCount = positions.length / 3;
-
+    
     for (let i = 0; i < particleCount; i++) {
       const i3 = i * 3;
-      positions[i3] += -0.5 - Math.random(); // x
-      positions[i3 + 1] += -0.5 - Math.random(); // y
-      positions[i3 + 2] += 0.1 * (Math.random() - 0.5); // z
-
-      // 如果粒子飞出视野，重置位置
+      positions[i3] += -1.5 - Math.random() * 2; // 更快的x轴速度
+      positions[i3 + 1] += -1.5 - Math.random() * 2; // 更快的y轴速度
+      positions[i3 + 2] += 0.3 * (Math.random() - 0.5); // 更明显的z轴变化
+      
+      // 如果粒子飞出视野，重置位置和随机颜色
       if (positions[i3 + 1] < -25) {
         positions[i3] = (Math.random() - 0.5) * 100;
-        positions[i3 + 1] = 50; // 回到顶部
+        positions[i3 + 1] = 50;
         positions[i3 + 2] = (Math.random() - 0.5) * 100;
+        
+        // 重置颜色
+        const colors = particles.geometry.attributes.color.array;
+        const color = colorOptions[Math.floor(Math.random() * colorOptions.length)];
+        colors[i3] = color.r;
+        colors[i3 + 1] = color.g;
+        colors[i3 + 2] = color.b;
+        particles.geometry.attributes.color.needsUpdate = true;
       }
     }
     particles.geometry.attributes.position.needsUpdate = true;
   }
-
+  
   composer.render();
 };
 
@@ -480,7 +479,10 @@ onUnmounted(() => {
   }
   // 移除 DOM 元素
   if (sceneContainer.value && renderer) {
-    sceneContainer.value.removeChild(renderer.domElement);
+      sceneContainer.value.removeChild(renderer.domElement);
+  }  const avatar = document.querySelector('.avatar-image');
+  if (avatar) {
+    avatar.removeEventListener('click', handleAvatarClick);
   }
 });
 
@@ -488,7 +490,91 @@ onUnmounted(() => {
 
 <style lang="less" scoped>
 /* 只保留正确的导入语句 */
-@import '@/styles/threeScene.less';
+@import '@/styles/threeScene.less'; 
 
 /* 移除这里的 .scene-container 规则 */
 </style>
+// 将 handleAvatarClick 函数移到其他函数定义的位置
+const handleAvatarClick = () => {
+  try {
+    const startPosition = new THREE.Vector3(
+      10, // 固定在右侧
+      15, // 较高的位置
+      -5  // 稍微靠前
+    );
+    
+    // 创建流星几何体
+    const geometry = new THREE.BufferGeometry();
+    const material = new THREE.LineBasicMaterial({
+      color: 0xffff00,
+      transparent: true,
+      opacity: 0.8,
+      linewidth: 3
+    });
+  
+    const points = [];
+    points.push(startPosition);
+    points.push(new THREE.Vector3(
+      startPosition.x - 30, // 更长的轨迹
+      startPosition.y - 30,
+      startPosition.z + 15
+    ));
+  
+    geometry.setFromPoints(points);
+    const meteor = new THREE.Line(geometry, material);
+    scene.add(meteor);
+  
+    // 添加拖尾效果
+    const trail = new THREE.Points(
+      new THREE.BufferGeometry(),
+      new THREE.PointsMaterial({
+        color: 0xffff00,
+        size: 0.5,
+        transparent: true,
+        opacity: 0.6,
+        blending: THREE.AdditiveBlending
+      })
+    );
+    scene.add(trail);
+  
+    // 动画效果
+    gsap.to(meteor.position, {
+      x: "-=30",
+      y: "-=30",
+      z: "+=15",
+      duration: 0.8,
+      ease: "power2.in",
+      onUpdate: () => {
+        // 更新拖尾效果
+        const positions = [];
+        for (let i = 0; i < 20; i++) {
+          positions.push(
+            meteor.position.x + Math.random() * 2,
+            meteor.position.y + Math.random() * 2,
+            meteor.position.z + Math.random() * 2
+          );
+        }
+        trail.geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      },
+      onComplete: () => {
+        scene.remove(meteor);
+        scene.remove(trail);
+        geometry.dispose();
+        material.dispose();
+        trail.geometry.dispose();
+        (trail.material as THREE.PointsMaterial).dispose();
+      }
+    });
+  };
+  
+  // 在 onMounted 中添加事件监听
+  onMounted(() => {
+    initScene();
+    
+    // 添加头像点击事件监听
+    const avatar = document.querySelector('.avatar-image');
+    if (avatar) {
+      avatar.addEventListener('click', handleAvatarClick);
+    }
+  });
+};
