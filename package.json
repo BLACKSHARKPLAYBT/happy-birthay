@@ -11,7 +11,6 @@
   "dependencies": {
     "@types/gsap": "^1.20.2",
     "@vueuse/motion": "^3.0.3",
-    "animejs": "^4.0.2",
     "gsap": "^3.13.0",
     "motion-v": "^1.0.1",
     "three": "^0.176.0",

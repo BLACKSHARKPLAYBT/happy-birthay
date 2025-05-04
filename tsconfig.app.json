@@ -5,7 +5,6 @@
 
     "paths": {
       "three/examples/jsm/*": ["./node_modules/three/examples/jsm/*"],
-      "animejs": ["./node_modules/animejs"]
     },
 
     /* Linting */

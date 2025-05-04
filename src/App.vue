@@ -146,7 +146,6 @@ import decoration3 from '/images/decoration3.png'
 
 
 gsap.registerPlugin(ScrollTrigger)
-
 // 保留 App.vue 相关的变量和函数
 const bgMusic = ref<HTMLAudioElement | null>(null)
 const isPlaying = ref(false)
