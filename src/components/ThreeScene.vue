@@ -38,7 +38,7 @@ const createToonMaterial = (color: number | string, darkColor: number | string) 
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
   `;
-  
+
   const fragmentShader = `
     uniform vec3 color;
     uniform vec3 darkColor;
@@ -62,7 +62,7 @@ const createToonMaterial = (color: number | string, darkColor: number | string) 
       gl_FragColor = vec4(finalColor, 1.0);
     }
   `;
-  
+
   return new ShaderMaterial({
     uniforms: {
       color: { value: new THREE.Color(color) },
@@ -116,9 +116,9 @@ const initScene = () => {
     composer.addPass(renderPass);
 
     outlinePass = new OutlinePass(
-      new THREE.Vector2(window.innerWidth, window.innerHeight),
-      scene,
-      camera
+        new THREE.Vector2(window.innerWidth, window.innerHeight),
+        scene,
+        camera
     );
     outlinePass.edgeStrength = 3.0;
     outlinePass.edgeGlow = 0.0;
@@ -298,9 +298,9 @@ const createBirthdayScene = () => {
     }
 
     decorMesh.position.set(
-      Math.cos(angle) * radius,
-      yPos,
-      Math.sin(angle) * radius
+        Math.cos(angle) * radius,
+        yPos,
+        Math.sin(angle) * radius
     );
     // 随机旋转
     decorMesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
@@ -330,12 +330,12 @@ const createParticles = () => {
     positions[i3] = (Math.random() - 0.5) * 100;
     positions[i3 + 1] = Math.random() * 50 + 25; // 高度范围
     positions[i3 + 2] = (Math.random() - 0.5) * 100;
-    
+
     // 速度向量
     velocities[i3] = -0.5 - Math.random(); // 向左飞
     velocities[i3 + 1] = -0.5 - Math.random(); // 向下飞
     velocities[i3 + 2] = 0.1 * (Math.random() - 0.5); // 略微的z轴变化
-    
+
     // 随机大小
     sizes[i] = Math.random() * 0.5 + 0.1;
   }
@@ -392,10 +392,10 @@ const createSpecialMeteor = () => {
   const points = [];
   points.push(new THREE.Vector3(-20, 20, 0));
   points.push(new THREE.Vector3(20, -20, 0));
-  
+
   geometry.setFromPoints(points);
   const meteor = new THREE.Line(geometry, material);
-  
+
   // 添加动画
   gsap.to(meteor.position, {
     x: 100,
@@ -415,17 +415,17 @@ const createSpecialMeteor = () => {
 const animate = () => {
   animationFrameId = requestAnimationFrame(animate);
   controls.update();
-  
+
   if (particles) {
     const positions = particles.geometry.attributes.position.array;
     const particleCount = positions.length / 3;
-    
+
     for (let i = 0; i < particleCount; i++) {
       const i3 = i * 3;
       positions[i3] += -0.5 - Math.random(); // x
       positions[i3 + 1] += -0.5 - Math.random(); // y
       positions[i3 + 2] += 0.1 * (Math.random() - 0.5); // z
-      
+
       // 如果粒子飞出视野，重置位置
       if (positions[i3 + 1] < -25) {
         positions[i3] = (Math.random() - 0.5) * 100;
@@ -435,7 +435,7 @@ const animate = () => {
     }
     particles.geometry.attributes.position.needsUpdate = true;
   }
-  
+
   composer.render();
 };
 
@@ -480,7 +480,7 @@ onUnmounted(() => {
   }
   // 移除 DOM 元素
   if (sceneContainer.value && renderer) {
-      sceneContainer.value.removeChild(renderer.domElement);
+    sceneContainer.value.removeChild(renderer.domElement);
   }
 });
 
@@ -488,7 +488,7 @@ onUnmounted(() => {
 
 <style lang="less" scoped>
 /* 只保留正确的导入语句 */
-@import '@/styles/threeScene.less'; 
+@import '@/styles/threeScene.less';
 
 /* 移除这里的 .scene-container 规则 */
 </style>

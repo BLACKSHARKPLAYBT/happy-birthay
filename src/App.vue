@@ -131,7 +131,6 @@
 import { onMounted, ref, onUnmounted } from 'vue'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import * as anime from 'animejs'
 import AboutMe from './components/AboutMe.vue'
 // 导入新的场景组件 (名称和路径已修正)
 import ThreeScene from './components/ThreeScene.vue'
@@ -275,15 +274,19 @@ onUnmounted(() => {
   });
 </script>
 <style>
+/* 在 :root 中添加字体变量 */
 :root {
+  /* 原有的颜色变量保持不变 */
   --primary-color: #FF69B4;     /* 主色调：亮粉色 */
   --secondary-color: #87CEEB;   /* 次要色：天蓝色 */
   --accent-color: #FFD700;      /* 强调色：金色 */
-  --text-primary: #333333;      /* 主要文字：深灰 */
-  --text-secondary: #666666;    /* 次要文字：中灰 */
+  --text-primary: #FFFFFF;      /* 主要文字：纯白色 */
+  --text-secondary: #E0E0E0;    /* 次要文字：浅灰白色 */
+  --text-accent: #FFB6C1;       /* 强调文字：浅粉色 */
   --background-primary: #FFF0F5; /* 主背景：淡粉色 */
   --background-secondary: #F0F8FF; /* 次要背景：淡蓝色 */
 }
+
 
 /* 修改渐变背景 */
 .content-sections {
@@ -292,7 +295,29 @@ onUnmounted(() => {
 
 /* 修改标题渐变 */
 .main-title {
-  background: linear-gradient(135deg, #FF69B4, #87CEEB);
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: bold;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.subtitle {
+  color: var(--text-primary);
+  text-shadow: 0 0 8px rgba(255, 105, 180, 0.3);
+  font-size: 1.2rem;
+  margin-top: 1rem;
+}
+
+.project-info h3 {
+  color: var(--text-primary);
+  font-weight: bold;
+  text-shadow: 0 0 8px rgba(255, 105, 180, 0.3);
+}
+
+.project-info p {
+  color: var(--text-secondary);
+  line-height: 1.6;
 }
 
 /* 修改导航栏样式 */
@@ -564,5 +589,16 @@ onUnmounted(() => {
   z-index: 1000;
   display: flex;
   gap: 1rem;
+}
+.meta-label {
+  color: var(--text-accent);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.meta-value {
+  color: var(--text-primary);
+  font-weight: 600;
+  text-shadow: 0 0 5px rgba(255, 105, 180, 0.2);
 }
 </style>
